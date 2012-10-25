@@ -1,0 +1,3 @@
+fentonWave/fentonWaveFvPatchFields.C
+
+LIB = $(FOAM_USER_LIBBIN)/libFentonWaveBC
