@@ -1,0 +1,30 @@
+Done
+	Implement height and pressure functions (Calcluate height no matter what, if U or p calculate U)
+	Rename period_ -> tau_
+	Remove findWaveNumber()
+	Implement air behaviour for all fields
+	Remove A_
+	g_ -> G_ and kVec_ -> K_
+	Test on waveTank2D
+	Does it still require phi<0 for control of alpha? Yes, but maybe use (n & u) > 0 instead of phi > 0? How to control volume fraction?
+	Implement writing a Fourier file and reading from it if it exists.
+	Change .use of old-style cast.
+	Add writing out of error from root finding routine
+	Test with interFoam 2.1.1 and 1.7.1
+	Allow mean water depth at other height than z = 0;
+	Implement automatic default choices for nModes and nHsteps
+	Make sure that all constructors are correctly defined (compare e.g. with advective)
+	Choose what to write with the write member method
+
+Todo
+	Make independent of gsl by conding as fenton.m script
+	Make fenton() an independent library
+	Make a interfoam test case and a navalfoam test case
+	Copy gsl routines to local directory to make it independent of external libraries
+	Make solitary wave case (looong wavelengt)
+	Maybe implement advanced ramping up with results from nHsteps.
+	Maybe implement cutting of faces
+	Maybe make independent of gsl
+	Update documentation in header
+	Share: Upload to github and announce on cfd-online
+
