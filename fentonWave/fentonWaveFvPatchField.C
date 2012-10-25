@@ -250,10 +250,15 @@ void fentonWaveFvPatchField<scalar>::setField(Field<scalar> const& iF, const wor
 	}
 	else if (fieldName == "pd" || fieldName == "p_rgh")
 	{
-		scalar c = omega_/k_;
-		this->refValue() =  alpha*rho_*( R_ - 0.5*( pow(u-c,2) + pow(v,2) ) );
+//		scalar c = omega_/k_;
+//		this->refValue() =  alpha*rho_*( R_ - 0.5*( pow(u-c,2) + pow(v,2) ) );
+//		this->refGrad() = 0.0;
+//		this->valueFraction() = 1.0;
+		
+		//So far only zero gradient implemented
+		this->refValue() =  0.0;
 		this->refGrad() = 0.0;
-		this->valueFraction() = 1.0;
+		this->valueFraction() = 0.0;
 	}	
 }
 
@@ -419,7 +424,6 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 
 		if ( sameWave )
 		{
-			Info << "Same wave 2" << endl;
 			k_ = k;
 			omega_ = omega;
 			uBar_ = readScalar(fentonFile.lookup("uBar"));  

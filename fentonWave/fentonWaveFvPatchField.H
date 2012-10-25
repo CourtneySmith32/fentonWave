@@ -26,8 +26,15 @@ Class
     fentonWaveFvPatchField
 
 Description
-    Boundary condition used to generate Airy (linear) waves on a patch.
-	
+	This is an implementation of the Fourier approximation method for finding
+	stream function waves described in section 3.1.2 of the paper by J.D.
+	Fenton, "Numerical Methods for Nonlinear Waves" (1999), Numerical Methods 
+	for Nonlinear Waves, Advances in Coastal and Ocean Engineering, Vol. 5,
+	pp241-324. Equation numbers in the code refer to this paper. At the time
+	of writing the paper could be downloaded here:
+
+	http://www.johndfenton.com/Papers/Fenton99Liu-Numerical-methods-for-nonlinear-waves.pdf	
+
 	Usage: 
 	
 	The wave generator patch velocity should be specified in 0/U like
@@ -47,14 +54,24 @@ Description
 			value			uniform 0;
 		}
 
-	In the <case>/constant folder there must be a file named waveProperties
+	In the <case>/constant folder there should be a file named waveProperties
 	containing the wave parameters:
 	
-		a             	a [0 1 0 0 0 0 0]	0.1; 		//wave amplitude
-		T              	T [0 0 1 0 0 0 0] 	1;			//wave period
-		D             	D [0 1 0 0 0 0 0]	1.0;		//mean water depth
-		k				k [0 -1 0 0 0 0 0]	(1 0 0);	//wave vector direction
-		Tr				Tr [0 0 1 0 0 0 0]	2;			//wave ramp up time
+		height          0.1;		//Wave heigth
+		depth           0.3;		//Water depth
+		period          20;			//Wave period (only used if uType = 1 or 2)
+		length			2;			//Wave length (only used if uType = 0)
+		uType           2; 			//Input type. 0: wave lenght specified. 1 or 2: wave period and current specified (default = 2).
+		u1or2           0; 			//Current, Eulerian if uType = 1, Stokes if uType = 2 (default = 0).
+		direction       ( 1 0 0 ); 	//Direction of wave vector
+		rampUpTime      0;			//Initial wave height ramp up time
+		nModes          40; 		//Number of Fourier modes in expansion (default = 30)
+		nHeightSteps    20; 		//Number of height steps in search for wave solution (default = 20)
+		rootTolerance	1e-7; 		//Tolerance in multidimensional root finding algorithm (default = 1e-7)
+		rootMaxIter		1000; 		//Maximum number of iterations in multidimensional root finding (default = 1000)
+		seabedHeight	-0.3; 		//Vertical coordinate of seabed on patch (default = lowest point on patch)
+		waveMakerPos	-3.0; 		//Horizontal position of wave maker (default = backmost point on patch)
+		phase			.1;			//Phase of wave, theta = k*x+omega*t + 2*pi*phase (default = 0.0)
 	
 	This folder must also contain a file named g containing the gravitation 
 	vector, e.g.:
@@ -64,16 +81,13 @@ Description
 
 	The file <case>/system/controlDict must end with the line:
 	
-		libs ( "libAiryWaveBC.so" "libOpenFOAM.so" );	
-	
-	For details about the implementation see the functions setField and 
-	findWaveNumber in the source file fentonWaveFvPatchField.C
-	
+		libs ( "libFentonWaveBC.so" "libOpenFOAM.so" );	
+		
 SourceFiles
     fentonWaveFvPatchField.C
 
 Author
-	Johan Roenby, DHI, March 2012.
+	Johan Roenby, DHI Water and Environment, 25 October 2012.
 
 \*---------------------------------------------------------------------------*/
 
