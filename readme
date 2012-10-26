@@ -57,9 +57,5 @@ Johan Roenby, DHI Water & Environment, jro at dhigroup.com
 Todo
 ====
 
-- Make independent of gsl by coding as fenton.m script?
-- Make fenton() an independent library?
-- Copy gsl routines to local directory to make it independent of external libraries
-- Maybe implement advanced ramping up with results from nHsteps.
+- Add tutorials
 - Maybe implement cutting of faces
-- Maybe make independent of gsl

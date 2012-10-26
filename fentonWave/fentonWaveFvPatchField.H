@@ -194,6 +194,12 @@ protected:
 
     // Protected member functions
 		
+		//Initialize member data from dictionary (avoid constructor code duplication)
+		void init();
+		
+		//Initialize member data from other patch (avoid constructor code duplication)
+		void init(const fentonWaveFvPatchField<Type>&);
+
 		//Calculate Fourier coefficients for stream function wave
 		void fenton();
 
@@ -202,13 +208,7 @@ protected:
 		
 		//Vector function that is the zero vector for a stream function wave solution
 		static int waveConditionVectorFunction (const gsl_vector *, void *, gsl_vector *);
-		
-		//Initialize member data from dictionary (avoid constructor code duplication)
-		void init();
-		
-		//Initialize member data from other patch (avoid constructor code duplication)
-		void init(const fentonWaveFvPatchField<Type>&);
-				
+						
 		//Populate B_ and E_ either by calculation or by reading from file
 		void getFourierCoeffs();
 		
@@ -282,6 +282,9 @@ public:
 				
 		//- Update the coefficients associated with the patch field
         virtual void updateCoeffs();
+
+		//- Update the coefficients associated with the patch field
+        virtual void evaluate();
 
         //- Set field values on patch
 		virtual void setField(const Field<Type>&, const word&, const scalarField&, const scalarField&, const scalarField&);

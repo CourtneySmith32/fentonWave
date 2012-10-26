@@ -92,8 +92,6 @@ fentonWaveFvPatchField<Type>::fentonWaveFvPatchField
 	E_(N_+1,0.0)
 {
 	Info<< "Construct from patch, internal field and dictionary" << endl;
-	init();
-	writeOutMembers();
 
     if (dict.found("value")) //Not sure why this is needed but it exists in many BC's derived from mixed, so better keep it (JRO).
     {
@@ -107,10 +105,14 @@ fentonWaveFvPatchField<Type>::fentonWaveFvPatchField
         fvPatchField<Type>::operator=(this->patchInternalField());
     }
 
+	init();
+	writeOutMembers();
+
     this->refValue() = *this;
     this->refGrad() = pTraits<Type>::zero;
     this->valueFraction() = 0.0;
-	
+
+	evaluate();
 }
 
 template<class Type>
@@ -203,6 +205,29 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	setField(this->refValue(),fieldName, alpha, u, v);
     mixedFvPatchField<Type>::updateCoeffs(); //This line simply runs fvPatchField::updateCoeffs() which simplys sets its private boolean updated_ = true;
 
+}
+
+// Evaluate the field on the patch
+template<class Type>
+void fentonWaveFvPatchField<Type>::evaluate()
+{
+    if (!this->updated())
+    {
+        this->updateCoeffs();
+    }
+    
+    Field<Type>::operator=
+    (
+        this->valueFraction()*this->refValue()
+      +
+        (1.0 - this->valueFraction())*
+        (
+            this->patchInternalField()
+          + this->refGrad()/this->patch().deltaCoeffs()
+        )
+    );
+
+    mixedFvPatchField<Type>::evaluate();
 }
 
 //In the following we use template specialization to set field depending on its Type: 
