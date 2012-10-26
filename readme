@@ -1,30 +1,65 @@
-Done
-	Implement height and pressure functions (Calcluate height no matter what, if U or p calculate U)
-	Rename period_ -> tau_
-	Remove findWaveNumber()
-	Implement air behaviour for all fields
-	Remove A_
-	g_ -> G_ and kVec_ -> K_
-	Test on waveTank2D
-	Does it still require phi<0 for control of alpha? Yes, but maybe use (n & u) > 0 instead of phi > 0? How to control volume fraction?
-	Implement writing a Fourier file and reading from it if it exists.
-	Change .use of old-style cast.
-	Add writing out of error from root finding routine
-	Test with interFoam 2.1.1 and 1.7.1
-	Allow mean water depth at other height than z = 0;
-	Implement automatic default choices for nModes and nHsteps
-	Make sure that all constructors are correctly defined (compare e.g. with advective)
-	Choose what to write with the write member method
+fentonWave - A stream function wave boundary condition for OpenFOAM
+===================================================================
+
+This is an OpenFOAM boundary condition class for generation of stream function waves.
+It is intended for use with interFoam type solvers in coastal and offshore applications.
+The implementation for the Fourier approximation of the stream function waves follows
+closely the describtion in section 3.1.2 of the paper by J.D. Fenton, "Numerical
+Methods for Nonlinear Waves" (1999), Numerical Methods for Nonlinear Waves,
+Advances in Coastal and Ocean Engineering, Vol. 5, pp241-324. Equation numbers in
+the code refer to this paper. At the time of writing the paper could be downloaded
+here:
+
+http://www.johndfenton.com/Papers/Fenton99Liu-Numerical-methods-for-nonlinear-waves.pdf
+
+Installation
+============		
+
+Compiled as a library libFentonWaveBC.so in the FOAM_USER_LIBBIN using 'wmake libso'.
+
+Prior to compilation you must ensure that you have the GSL (Gnu Scientific Library) 
+installed on your computer. The source can be downloaded from here:
+
+ftp://ftp.gnu.org/gnu/gsl/
+
+After downloading GSL install it by following the instructions in the INSTALL file.
+
+You must also export an environmental variable, GSL_DIR, containing the path to the GSL 
+installation such that the following files exist:
+
+$GSL_DIR/include/gsl/gsl_vector.h 
+$GSL_DIR/include/gsl/gsl_multiroots.h
+$GSL_DIR/lib/libgsl.so
+$GSL_DIR/lib/libgslcblas.so
+
+After running 'wmake libso' from the fentonWave directory GSL_DIR may be unset.
+	
+Usage
+=====
+
+See header in fentonWaveFvPatchField.H
+
+Availiability
+=============
+
+This code is freely available at https://github.com/roenby/fentonWave.git
+
+Bug reporting
+=============
+
+Please report bugs to jro@dhigroup.com
+
+Author
+======
+
+Johan Roenby, DHI Water & Environment, jro@dhigroup.com
 
 Todo
-	Make independent of gsl by conding as fenton.m script
-	Make fenton() an independent library
-	Make a interfoam test case and a navalfoam test case
-	Copy gsl routines to local directory to make it independent of external libraries
-	Make solitary wave case (looong wavelengt)
-	Maybe implement advanced ramping up with results from nHsteps.
-	Maybe implement cutting of faces
-	Maybe make independent of gsl
-	Update documentation in header
-	Share: Upload to github and announce on cfd-online
+====
 
+- Make independent of gsl by coding as fenton.m script?
+- Make fenton() an independent library?
+- Copy gsl routines to local directory to make it independent of external libraries
+- Maybe implement advanced ramping up with results from nHsteps.
+- Maybe implement cutting of faces
+- Maybe make independent of gsl

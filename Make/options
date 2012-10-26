@@ -1,16 +1,7 @@
 EXE_INC = \
     -I$(LIB_SRC)/finiteVolume/lnInclude \
-    -I$(GSL_DIR)/include \
-    -I/usr/local/include \
-    -I/usr/include
+    -I$(GSL_DIR)/include
 
-EXE_LIBS = \
-    -lfiniteVolume \
-    -lmeshTools \
-    -L$(GSL_DIR)/lib \
-    -lgsl \
-    -lgslcblas
-	
 LIB_LIBS = \
     -lfiniteVolume \
     -lmeshTools \

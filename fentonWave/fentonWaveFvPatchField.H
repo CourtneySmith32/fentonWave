@@ -56,22 +56,25 @@ Description
 
 	In the <case>/constant folder there should be a file named waveProperties
 	containing the wave parameters:
-	
+
+	//	Name			Value ex.	Description
 		height          0.1;		//Wave heigth
-		depth           0.3;		//Water depth
 		period          20;			//Wave period (only used if uType = 1 or 2)
 		length			2;			//Wave length (only used if uType = 0)
 		uType           2; 			//Input type. 0: wave lenght specified. 1 or 2: wave period and current specified (default = 2).
 		u1or2           0; 			//Current, Eulerian if uType = 1, Stokes if uType = 2 (default = 0).
+
+		depth           0.3;		//Water depth
 		direction       ( 1 0 0 ); 	//Direction of wave vector
 		rampUpTime      0;			//Initial wave height ramp up time
+		seabedHeight	-0.3; 		//Vertical coordinate of seabed on patch (default = lowest point on patch)
+		waveMakerPos	-3.0; 		//Horizontal position of wave maker (default = backmost point on patch)
+		phase			.1;			//Phase of wave, theta = k*x+omega*t + 2*pi*phase (default = 0.0)
+
 		nModes          40; 		//Number of Fourier modes in expansion (default = 30)
 		nHeightSteps    20; 		//Number of height steps in search for wave solution (default = 20)
 		rootTolerance	1e-7; 		//Tolerance in multidimensional root finding algorithm (default = 1e-7)
 		rootMaxIter		1000; 		//Maximum number of iterations in multidimensional root finding (default = 1000)
-		seabedHeight	-0.3; 		//Vertical coordinate of seabed on patch (default = lowest point on patch)
-		waveMakerPos	-3.0; 		//Horizontal position of wave maker (default = backmost point on patch)
-		phase			.1;			//Phase of wave, theta = k*x+omega*t + 2*pi*phase (default = 0.0)
 	
 	This folder must also contain a file named g containing the gravitation 
 	vector, e.g.:
@@ -87,7 +90,7 @@ SourceFiles
     fentonWaveFvPatchField.C
 
 Author
-	Johan Roenby, DHI Water and Environment, 25 October 2012.
+	Johan Roenby, DHI Water & Environment.
 
 \*---------------------------------------------------------------------------*/
 
