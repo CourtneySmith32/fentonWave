@@ -111,7 +111,6 @@ fentonWaveFvPatchField<Type>::fentonWaveFvPatchField
     this->refGrad() = pTraits<Type>::zero;
     this->valueFraction() = 0.0;
 	
-//	evaluate();
 }
 
 template<class Type>
@@ -130,7 +129,6 @@ fentonWaveFvPatchField<Type>::fentonWaveFvPatchField
 {
 	Info<< "Construct by mapping given fentonWaveFvPatchField onto a new patch" << endl;
 	init(ptf);
-	writeOutMembers();
 }
 
 
@@ -148,7 +146,6 @@ fentonWaveFvPatchField<Type>::fentonWaveFvPatchField
 {
 	Info<< "Construct as copy setting internal field reference" << endl;
 	init(ptf);
-	writeOutMembers();
 }
 
 
@@ -166,11 +163,8 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	
 	scalarField x = (K_/mag(K_)) & (this->patch().Cf());
 	x -= xWaveMaker_;
-//	Info << "Subtracting " << xWaveMaker_ << " from x" << endl;
 	scalarField y = (-g_/mag(g_)) & (this->patch().Cf());
 	y -= seabedHeight_; //Vertical coordinate as measured from seabed
-//	Info << "Subtracting " << seabedHeight_ << " from y" << endl;
-//	y += d_;
 	
 	scalar t = this->db().time().value();
 	scalarField theta = k_*x - omega_*t + 2*pi_*phi_;
@@ -384,9 +378,9 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 		)
 	);
 	
-	bool sameWave = false;
+	bool sameWave = !(fentonFile.empty());
 
-	if ( ! (fentonFile.empty()) )
+	if ( sameWave )
 	{
 		scalar H(readScalar(fentonFile.lookup("H")));
 		scalar d(readScalar(fentonFile.lookup("d")));
@@ -396,12 +390,14 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 		unsigned int rootMaxIter(readInt(fentonFile.lookup("maxIter")));
 		int uType(readInt(fentonFile.lookup("uType")));
 
+		scalar prec(2*pow(10.0,-scalar(IOstream::precision_)));
+
 		sameWave = sameWave && (N == N_);
 		sameWave = sameWave && (nHsteps == nHsteps_);
-		sameWave = sameWave && (abs(rootTolerance - rootTolerance_) < SMALL);
+		sameWave = sameWave && (abs(rootTolerance - rootTolerance_) < prec);
 		sameWave = sameWave && (rootMaxIter == rootMaxIter_);
 		sameWave = sameWave && (uType == uType_);
-		sameWave = sameWave && (abs(H/d - H_/d_) < SMALL);
+		sameWave = sameWave && (mag(H/d - H_/d_) < prec);
 
 		scalar k(readScalar(fentonFile.lookup("k")));
 		scalar omega(readScalar(fentonFile.lookup("omega")));
@@ -409,13 +405,12 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 			
 		if ( uType_ == 0 )
 		{
-			sameWave = sameWave && (abs(k/d - k_/d_) < SMALL);
+			sameWave = sameWave && (mag(k/d - k_/d_) < prec);
 		}
 		else if ( uType_ == 1 || uType_ == 2 )
 		{
-			Info << "omega_ = " << omega_ << " and omega = " << omega << endl;
-			sameWave = sameWave && (abs(omega - omega_) < SMALL);
-			sameWave = sameWave && (abs(u1or2 - u1or2_) < SMALL);
+			sameWave = sameWave && (mag(omega - omega_) < prec);
+			sameWave = sameWave && (mag(u1or2 - u1or2_) < prec);
 		}
 		else
 		{
