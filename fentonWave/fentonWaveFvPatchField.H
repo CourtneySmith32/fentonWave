@@ -287,7 +287,7 @@ public:
         virtual void evaluate();
 
         //- Set field values on patch
-		virtual void setField(const Field<Type>&, const word&, const scalarField&, const scalarField&, const scalarField&);
+		virtual void setField(const Field<Type>&, const word&, const scalarField&, const scalarField&, const scalarField&, const scalarField&);
 		
 		//- Write
         virtual void write(Ostream&) const;

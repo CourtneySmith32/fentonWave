@@ -12,6 +12,14 @@ here:
 
 http://www.johndfenton.com/Papers/Fenton99Liu-Numerical-methods-for-nonlinear-waves.pdf
 
+The assumptions behind the calculation are that the flow is 
+
+- 2-dimensional,
+- inviscid,
+- irrotational, 
+- steady (in a frame travelling with the wave)
+- periodic (with either wave period or wave length specified by the user)
+
 Installation
 ============		
 
@@ -37,7 +45,7 @@ After running 'wmake libso' from the fentonWave directory GSL_DIR may be unset.
 Usage
 =====
 
-See header in fentonWaveFvPatchField.H
+See header in fentonWaveFvPatchField.H and tutorials
 
 Availiability
 =============

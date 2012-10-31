@@ -26,6 +26,8 @@ License
 
 #include "fentonWaveFvPatchField.H"
 #include "surfaceFields.H" //using lookupPatchField to get flux
+#include "volFields.H"
+
 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
@@ -153,6 +155,29 @@ fentonWaveFvPatchField<Type>::fentonWaveFvPatchField
 
 // * * * * * * * * * * * * * * * Member Functions  * * * * * * * * * * * * * //
 
+// Evaluate the field on the patch
+template<class Type>
+void fentonWaveFvPatchField<Type>::evaluate()
+{
+    if (!this->updated())
+    {
+        this->updateCoeffs();
+    }
+    
+    Field<Type>::operator=
+    (
+        this->valueFraction()*this->refValue()
+      +
+        (1.0 - this->valueFraction())*
+        (
+            this->patchInternalField()
+          + this->refGrad()/this->patch().deltaCoeffs()
+        )
+    );
+
+    mixedFvPatchField<Type>::evaluate();
+}
+
 // Update the coefficients associated with the patch field
 template<class Type>
 void fentonWaveFvPatchField<Type>::updateCoeffs()
@@ -189,7 +214,7 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	u *= sqrt(mag(g_)/k_);
 	v *= sqrt(mag(g_)/k_);
 	u += omega_/k_ - uBar_;
-	
+
 	scalar fac(1.0);
 	if (t < rampUpTime_)
 	{
@@ -199,49 +224,42 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 		eta = fac*(eta-d_) + d_;
 	}
 
-	scalarField alpha(neg(y - eta));
-
+	scalarField alpha(neg(y - eta)); //Modify to set 0<alpha<1 at surface
+	
 	const word& fieldName = this->dimensionedInternalField().name(); //For some reason this line cannot be executed in setField. Therefore fieldName is written here and given as an input parameter to setField.
-	setField(this->refValue(),fieldName, alpha, u, v);
+	setField(this->refValue(),fieldName, alpha, u, v, eta);
     mixedFvPatchField<Type>::updateCoeffs(); //This line simply runs fvPatchField::updateCoeffs() which simplys sets its private boolean updated_ = true;
 
-}
-
-// Evaluate the field on the patch
-template<class Type>
-void fentonWaveFvPatchField<Type>::evaluate()
-{
-    if (!this->updated())
-    {
-        this->updateCoeffs();
-    }
-    
-    Field<Type>::operator=
-    (
-        this->valueFraction()*this->refValue()
-      +
-        (1.0 - this->valueFraction())*
-        (
-            this->patchInternalField()
-          + this->refGrad()/this->patch().deltaCoeffs()
-        )
-    );
-
-    mixedFvPatchField<Type>::evaluate();
 }
 
 //In the following we use template specialization to set field depending on its Type: 
 //Inspired by http://www.parashift.com/c++-faq-lite/templates.html#faq-35.7
 
 template<class Type>
-void fentonWaveFvPatchField<Type>::setField(Field<Type> const& refVal, const word& fieldName, const scalarField& alpha, const scalarField& u, const scalarField& v)
+void fentonWaveFvPatchField<Type>::setField
+(
+	Field<Type> const& refVal, 
+	const word& fieldName, 
+	const scalarField& alpha, 
+	const scalarField& u, 
+	const scalarField& v, 
+	const scalarField& eta
+)
 {
 //   dummy code executed if setField is called with other Type than scalar or vector
 }   
 
 // Setting volume fraction (alpha1) and pressure (pd) field
 template<> 
-void fentonWaveFvPatchField<scalar>::setField(Field<scalar> const& iF, const word& fieldName, const scalarField& alpha, const scalarField& u, const scalarField& v)
+void fentonWaveFvPatchField<scalar>::setField
+(
+	Field<scalar> const& iF, 
+	const word& fieldName, 
+	const scalarField& alpha, 
+	const scalarField& u, 
+	const scalarField& v, 
+	const scalarField& eta
+)
 {
 	if (fieldName == "alpha1")
 	{			
@@ -267,23 +285,48 @@ void fentonWaveFvPatchField<scalar>::setField(Field<scalar> const& iF, const wor
 		}
 
 	}
-	else if (fieldName == "pd" || fieldName == "p_rgh")
+	else if (fieldName == "pd" || fieldName == "p_rgh" || fieldName == "ph_rgh")
 	{
-//		scalar c = omega_/k_;
-//		this->refValue() =  alpha*rho_*( R_ - 0.5*( pow(u-c,2) + pow(v,2) ) );
-//		this->refGrad() = 0.0;
-//		this->valueFraction() = 1.0;
-		
-		//So far only zero gradient implemented
-		this->refValue() =  0.0;
-		this->refGrad() = 0.0;
-		this->valueFraction() = 0.0;
+		if (this->db().time().timeIndex() != 0)
+		{
+			const fvPatchField<scalar>& rho =
+				patch().lookupPatchField<volScalarField, scalar>("rho");
+			scalar c = omega_/k_;
+			this->refValue() =  rho*( R_ - 0.5*pow(u-c,2) - 0.5*pow(v,2) );
+/*
+				(
+					alpha*( R_ - 0.5*pow(u-c,2) - 0.5*pow(v,2) )
+					- (1.0-alpha)*mag(g_)*eta	
+				);
+*/
+				//		this->refGrad() = 0.0;
+	//		this->valueFraction() = 1.0;
+			
+			//from buoyantPressure
+//			this->refValue() =  0.0;
+			this->refGrad() = -rho.snGrad()*(g_ & this->patch().Cf());
+			this->valueFraction() = (1.0-alpha);
+		}
+		else
+		{
+			this->refValue() =  0.0;
+			this->refGrad() = 0.0;
+			this->valueFraction() = 0.0;			
+		}
 	}	
 }
 
 // Setting velocity field
 template<> 
-void fentonWaveFvPatchField<vector>::setField(Field<vector> const& refVal, const word& fieldName, const scalarField& alpha, const scalarField& u, const scalarField& v)
+void fentonWaveFvPatchField<vector>::setField
+(
+	Field<vector> const& refVal, 
+	const word& fieldName, 
+	const scalarField& alpha, 
+	const scalarField& u, 
+	const scalarField& v, 
+	const scalarField& eta
+)
 {			
 	this->refValue() = alpha*( u*K_/mag(K_) + v*( -g_/mag(g_)) );
 	this->refGrad() = vector::zero;
