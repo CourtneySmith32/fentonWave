@@ -369,16 +369,42 @@ void fentonWaveFvPatchField<Type>::init()
 		)
 	).value();
 
+
+/*//For some strange reason this auto choice of wave vector does not work when run in parallel
+	const vectorField& Sf = this->patch().Sf();
+	K_ = vector::zero;
+	forAll(Sf,facei)
+    {
+		K_ -= Sf[facei];
+    }
+	K_ = K_/mag(K_);
+*/
+
 	K_ = vector(waveProp_.lookup("direction"));
 	K_ = K_/mag(K_);
 
-	//Vertical seabed coordinate at boundary
-	scalar yMin = min( (-g_/mag(g_)) & (this->patch().boundaryMesh().mesh().points())); //lowest point on patch
-	seabedHeight_ = waveProp_.lookupOrDefault<scalar>("seabedHeight",yMin);
+	//Finding lowest and the "backmost" mesh point on the patch
+    const fvMesh & mesh = this->dimensionedInternalField().mesh();
+	const pointField& p = mesh.points();
+    const label patchID = mesh.boundaryMesh().findPatchID(this->patch().name());
+	const polyPatch& patch = mesh.boundaryMesh()[patchID];
+	const labelList& labels(patch.meshPoints());
+
+	vector up(-g_/mag(g_));
+	scalar ymin(1e20), xmin(1e20);
+	forAll(labels, pi)
+	{
+		scalar yi = (up & (p[labels[pi]]));
+		scalar xi = (K_ & (p[labels[pi]]));
+		if (yi < ymin) ymin = yi;
+		if (xi < xmin) xmin = xi;
+	}
+	
+	//Vertical position of seabed at the boundary in coordinates used to generate mesh 
+	seabedHeight_ = waveProp_.lookupOrDefault<scalar>("seabedHeight",ymin);
 
 	//Horizontal wave maker position
-	scalar xMin = min( K_ & (this->patch().boundaryMesh().mesh().points())); //lowest point on patch
-	xWaveMaker_ = waveProp_.lookupOrDefault<scalar>("waveMakerPos",xMin);
+	xWaveMaker_ = waveProp_.lookupOrDefault<scalar>("waveMakerPos",xmin);
 	
     phi_ = waveProp_.lookupOrDefault<scalar>("phase",0.0);
 	rampUpTime_ = readScalar(waveProp_.lookup("rampUpTime"));
