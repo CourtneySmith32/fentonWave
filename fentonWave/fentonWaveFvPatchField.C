@@ -287,25 +287,7 @@ void fentonWaveFvPatchField<scalar>::setField
 	{			
 		this->refValue() = alpha;
 		this->refGrad() = 0.0;
-				
-		//Setting field to fixed value at inflow faces and zero gradient at outflow faces
-//		if (this->db().time().timeIndex() != 0)
-		if ( false )
-		{
-			const Field<scalar>& phip = this->patch().lookupPatchField
-			(
-				"phi",
-				reinterpret_cast<const surfaceScalarField*>(NULL),
-				reinterpret_cast<const scalar*>(NULL)
-			);
-
-			this->valueFraction() = 1.0 - pos(phip);
-		}
-		else
-		{
-			this->valueFraction() = 1.0;
-		}
-
+		this->valueFraction() = 1.0;
 	}
 	else if (fieldName == "pd" || fieldName == "p_rgh" || fieldName == "ph_rgh")
 	{
