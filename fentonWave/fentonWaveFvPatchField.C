@@ -196,12 +196,14 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	scalar t = this->db().time().value();
 	scalarField theta = k_*x - omega_*t + 2*pi_*phi_;
 
+	//Calculating surface elevation above sealevel
 	scalarField eta(x.size(),0.0);
 	forAll(E_,jj)
 	{
 		eta += 2*E_[jj]*cos(jj*theta);
 	}
 	
+	//Calculating velocity filed components
 	scalarField u(y.size(),0.0);
 	scalarField v(y.size(),0.0);
 	int	jj;
@@ -215,6 +217,7 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	v *= sqrt(mag(g_)/k_);
 	u += omega_/k_ - uBar_;
 
+	//Attenuating fields during ramp up time
 	scalar fac(1.0);
 	if (t < rampUpTime_)
 	{
@@ -224,10 +227,30 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 		eta = fac*(eta-d_) + d_;
 	}
 
-	scalarField alpha(neg(y - eta)); //Modify to set 0<alpha<1 at surface
+	//Calculating volume fraction (assuming parallelogram shaped - e.g. rectangular - faces with horizontal sides)
+	const faceList& fs = this->dimensionedInternalField().mesh().faces();
+	const pointField& p = this->dimensionedInternalField().mesh().points();
+	const label start = this->patch().patch().start();
+	scalarField alpha(y.size(),0.0);
 	
-	const word& fieldName = this->dimensionedInternalField().name(); //For some reason this line cannot be executed in setField. Therefore fieldName is written here and given as an input parameter to setField.
-	setField(this->refValue(),fieldName, alpha, u, v, eta);
+	vector up = -g_/mag(g_);
+	forAll(y,facei)
+    {
+        const labelList& f = fs[facei + start];
+        label nPoints = f.size();
+		scalar ymin(1e20), ymax(-1e20);
+		for (label pi = 0; pi < nPoints; pi++)
+        {
+			scalar yi = (up & (p[f[pi]])) - seabedHeight_;
+			if (yi < ymin) ymin = yi;
+			if (yi > ymax) ymax = yi;
+        }
+		alpha[facei] = min(max((eta[facei]-ymin)/(ymax-ymin),0.0),1.0);
+    }
+
+	//Setting field depending on its type
+	setField(this->refValue(), alpha, u, v);
+
     mixedFvPatchField<Type>::updateCoeffs(); //This line simply runs fvPatchField::updateCoeffs() which simplys sets its private boolean updated_ = true;
 
 }
@@ -239,11 +262,9 @@ template<class Type>
 void fentonWaveFvPatchField<Type>::setField
 (
 	Field<Type> const& refVal, 
-	const word& fieldName, 
 	const scalarField& alpha, 
 	const scalarField& u, 
-	const scalarField& v, 
-	const scalarField& eta
+	const scalarField& v
 )
 {
 //   dummy code executed if setField is called with other Type than scalar or vector
@@ -254,21 +275,22 @@ template<>
 void fentonWaveFvPatchField<scalar>::setField
 (
 	Field<scalar> const& iF, 
-	const word& fieldName, 
 	const scalarField& alpha, 
 	const scalarField& u, 
-	const scalarField& v, 
-	const scalarField& eta
+	const scalarField& v
 )
-{
-	if (fieldName == "alpha1")
+{	
+
+	const word& fieldName = this->dimensionedInternalField().name();
+
+	if (fieldName == "alpha1" || fieldName == "gamma")
 	{			
 		this->refValue() = alpha;
 		this->refGrad() = 0.0;
-		this->valueFraction() = 1.0;
 				
 		//Setting field to fixed value at inflow faces and zero gradient at outflow faces
-		if (this->db().time().timeIndex() != 0)
+//		if (this->db().time().timeIndex() != 0)
+		if ( false )
 		{
 			const Field<scalar>& phip = this->patch().lookupPatchField
 			(
@@ -293,15 +315,7 @@ void fentonWaveFvPatchField<scalar>::setField
 				patch().lookupPatchField<volScalarField, scalar>("rho");
 			scalar c = omega_/k_;
 			this->refValue() =  rho*( R_ - 0.5*pow(u-c,2) - 0.5*pow(v,2) );
-/*
-				(
-					alpha*( R_ - 0.5*pow(u-c,2) - 0.5*pow(v,2) )
-					- (1.0-alpha)*mag(g_)*eta	
-				);
-*/
-				//		this->refGrad() = 0.0;
-	//		this->valueFraction() = 1.0;
-			
+
 			//from buoyantPressure
 //			this->refValue() =  0.0;
 			this->refGrad() = -rho.snGrad()*(g_ & this->patch().Cf());
@@ -321,11 +335,9 @@ template<>
 void fentonWaveFvPatchField<vector>::setField
 (
 	Field<vector> const& refVal, 
-	const word& fieldName, 
 	const scalarField& alpha, 
 	const scalarField& u, 
-	const scalarField& v, 
-	const scalarField& eta
+	const scalarField& v
 )
 {			
 	this->refValue() = alpha*( u*K_/mag(K_) + v*( -g_/mag(g_)) );
