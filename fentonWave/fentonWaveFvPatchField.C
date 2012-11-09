@@ -61,7 +61,7 @@ fentonWaveFvPatchField<Type>::fentonWaveFvPatchField
 {
 	Info<< "Construct from patch and internal field" << endl;
 	init();
-	writeOutMembers();
+//	writeOutMembers();
 
 	//Initialising to fixed value boundary with zero as the value
     this->refValue() = pTraits<Type>::zero;
@@ -108,7 +108,7 @@ fentonWaveFvPatchField<Type>::fentonWaveFvPatchField
     }
 
 	init();
-	writeOutMembers();
+//	writeOutMembers();
 
     this->refValue() = *this;
     this->refGrad() = pTraits<Type>::zero;
@@ -148,7 +148,7 @@ fentonWaveFvPatchField<Type>::fentonWaveFvPatchField
 	B_(ptf.B_),
 	E_(ptf.E_)
 {
-	Info<< "Construct as copy setting internal field reference" << endl;
+//	Info<< "Construct as copy setting internal field reference" << endl;
 	init(ptf);
 }
 
@@ -200,7 +200,7 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	scalarField eta(x.size(),0.0);
 	forAll(E_,jj)
 	{
-		eta += 2*E_[jj]*cos(jj*theta);
+		eta += 2*E_[jj]*cos(jj*theta); //Fenton (1999), eq. (3.27)
 	}
 	
 	//Calculating velocity filed components
@@ -210,8 +210,8 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	forAll(B_,ii)
 	{
 		jj = ii + 1;
-		u += jj*B_[ii]*cosh(jj*k_*y)/cosh(jj*k_*d_)*cos(jj*theta);
-		v += jj*B_[ii]*sinh(jj*k_*y)/cosh(jj*k_*d_)*sin(jj*theta);
+		u += jj*B_[ii]*cosh(jj*k_*y)/cosh(jj*k_*d_)*cos(jj*theta); //Fenton (1999), eq. (3.24)
+		v += jj*B_[ii]*sinh(jj*k_*y)/cosh(jj*k_*d_)*sin(jj*theta); //Fenton (1999), eq. (3.25)
 	}
 	u *= sqrt(mag(g_)/k_);
 	v *= sqrt(mag(g_)/k_);
@@ -228,9 +228,9 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	}
 
 	//Calculating volume fraction (assuming parallelogram shaped - e.g. rectangular - faces with horizontal sides)
-	const faceList& fs = this->dimensionedInternalField().mesh().faces();
-	const pointField& p = this->dimensionedInternalField().mesh().points();
-	const label start = this->patch().patch().start();
+	const faceList& fs = this->dimensionedInternalField().mesh().faces(); //Handle to list of all faces
+	const pointField& p = this->dimensionedInternalField().mesh().points(); //Handle to list of all grid points
+	const label start = this->patch().patch().start(); //index in mesh face list of first face belonging to this patch
 	scalarField alpha(y.size(),0.0);
 	
 	vector up = -g_/mag(g_);
@@ -270,7 +270,7 @@ void fentonWaveFvPatchField<Type>::setField
 //   dummy code executed if setField is called with other Type than scalar or vector
 }   
 
-// Setting volume fraction (alpha1) and pressure (pd) field
+// Setting volume fraction (alpha1) and pressure (pd etc) field
 template<> 
 void fentonWaveFvPatchField<scalar>::setField
 (
@@ -296,12 +296,9 @@ void fentonWaveFvPatchField<scalar>::setField
 			const fvPatchField<scalar>& rho =
 				patch().lookupPatchField<volScalarField, scalar>("rho");
 			scalar c = omega_/k_;
-			this->refValue() =  rho*( R_ - 0.5*pow(u-c,2) - 0.5*pow(v,2) );
-
-			//from buoyantPressure
-//			this->refValue() =  0.0;
-			this->refGrad() = -rho.snGrad()*(g_ & this->patch().Cf());
-			this->valueFraction() = (1.0-alpha);
+			this->refValue() =  rho*( R_ - 0.5*pow(u-c,2) - 0.5*pow(v,2) ); //Fenton (1999) eq. (3.28)
+			this->refGrad() = -rho.snGrad()*(g_ & this->patch().Cf()); //Taken from buoyantPressure
+			this->valueFraction() = (1.0-alpha); //Fixed value in water and fixed Gradient in air
 		}
 		else
 		{
