@@ -21,8 +21,8 @@ The assumptions behind the calculation are:
 - Steady flow, i.e. there is a frame of reference in which the flow is stationary
 - Periodic flow (with either wave period or wave length specified by the user)
 
-There is no assumption of infinitesimal wave amplitude as is the case for linear
-(Airy) wave theory and Stokes wave theory.
+There is no assumption about infinitesimal wave amplitude as is the case for linear
+(Airy) waves.
 
 Installation
 ============		
@@ -43,6 +43,8 @@ $GSL_DIR/include/gsl/gsl_vector.h
 $GSL_DIR/include/gsl/gsl_multiroots.h
 $GSL_DIR/lib/libgsl.so
 $GSL_DIR/lib/libgslcblas.so
+
+Usually GSL_DIR is simply /usr.
 
 After running 'wmake libso' from the fentonWave directory GSL_DIR may be unset.
 
@@ -71,3 +73,7 @@ Todo
 
 - Add tutorials
 - Implement analytical fixedGradient pressure field
+- Specify waveProperty file name in 0/field to allow different 
+  dictionaries for different boundaries
+- Generalize face cutting method in alpha calculation to allow
+  arbitrary face shapes on the patch
