@@ -12,13 +12,17 @@ here:
 
 http://www.johndfenton.com/Papers/Fenton99Liu-Numerical-methods-for-nonlinear-waves.pdf
 
-The assumptions behind the calculation are that the flow is 
+The assumptions behind the calculation are: 
 
-- 2-dimensional,
-- inviscid,
-- irrotational, 
-- steady (in a frame travelling with the wave)
-- periodic (with either wave period or wave length specified by the user)
+- 2-dimensional flow with the surface elevation a well-defined function of the position 
+  along the axis of wave propagation.
+- Infinite, flat, horizontal seabed
+- Inviscid fluid and irrotational flow so that stream function theory applies
+- Steady flow, i.e. there is a frame of reference in which the flow is stationary
+- Periodic flow (with either wave period or wave length specified by the user)
+
+There is no assumption of infinitesimal wave amplitude as is the case for linear
+(Airy) wave theory and Stokes wave theory.
 
 Installation
 ============		
@@ -41,7 +45,7 @@ $GSL_DIR/lib/libgsl.so
 $GSL_DIR/lib/libgslcblas.so
 
 After running 'wmake libso' from the fentonWave directory GSL_DIR may be unset.
-	
+
 Usage
 =====
 
@@ -66,4 +70,4 @@ Todo
 ====
 
 - Add tutorials
-- Maybe implement cutting of faces
+- Implement analytical fixedGradient pressure field
