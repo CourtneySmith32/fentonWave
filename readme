@@ -77,3 +77,10 @@ Todo
   dictionaries for different boundaries
 - Generalize face cutting method in alpha calculation to allow
   arbitrary face shapes on the patch
+
+Known bugs
+==========
+
+- The root finding algorithm has been observed to crash with a floating 
+  point exception if very small wave height is used in combination with
+  too many nHeightSteps. Try to lower nHeightSteps.

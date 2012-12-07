@@ -586,7 +586,7 @@ void fentonWaveFvPatchField<Type>::fenton()
 	x[2*N_+2] = kd;
 	x[2*N_+3] = q;
 	x[2*N_+4] = r;
-
+	
 	for (int ii=1; ii<=nHsteps_; ii++) 
 	{
 		findRoots(x, ii*H_/nHsteps_/d_, lort);
