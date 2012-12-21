@@ -295,10 +295,11 @@ void fentonWaveFvPatchField<scalar>::setField
 		{
 			const fvPatchField<scalar>& rho =
 				patch().lookupPatchField<volScalarField, scalar>("rho");
-			scalar c = omega_/k_;
-			this->refValue() =  rho*( R_ - 0.5*pow(u-c,2) - 0.5*pow(v,2) ); //Fenton (1999) eq. (3.28)
+//			scalar c = omega_/k_;
+//			this->refValue() =  rho*( R_ - 0.5*pow(u-c,2) - 0.5*pow(v,2) ); //Fenton (1999) eq. (3.28)
 			this->refGrad() = -rho.snGrad()*(g_ & this->patch().Cf()); //Taken from buoyantPressure
-			this->valueFraction() = (1.0-alpha); //Fixed value in water and fixed Gradient in air
+//			this->valueFraction() = (1.0-alpha); //Fixed value in water and fixed Gradient in air - Runs way too slow with this
+			this->valueFraction() = 0.0; //fixedGradient as in buoyantPressure
 		}
 		else
 		{

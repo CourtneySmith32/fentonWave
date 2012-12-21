@@ -62,8 +62,10 @@ Features
 ========
 Calculates Fourier coefficients only once at object construction and writes
 data to a file. 
+
 The code uses template specialization to minimize code duplication and allow the 
 same class to be used for both volume fraction, velocity and pressure fields.
+
 The volume fraction field at faces intersected by the water surface is calculated 
 correctly provided the faces are parallelograms (in particular rectangles) with 
 horizontal sides.
