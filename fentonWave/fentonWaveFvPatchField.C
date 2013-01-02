@@ -322,7 +322,8 @@ void fentonWaveFvPatchField<vector>::setField
 {			
 	this->refValue() = alpha*( u*K_/mag(K_) + v*( -g_/mag(g_)) );
 	this->refGrad() = vector::zero;
-	this->valueFraction() = 1.0;
+//	this->valueFraction() = 1.0;
+	this->valueFraction() = alpha;
 } 
 
 // Initialising 

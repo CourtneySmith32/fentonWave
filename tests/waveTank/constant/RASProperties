@@ -17,9 +17,9 @@ FoamFile
 
 RASModel        laminar;
 
-turbulence      on;
+turbulence      off;
 
-printCoeffs     on;
+printCoeffs     off;
 
 
 // ************************************************************************* //
