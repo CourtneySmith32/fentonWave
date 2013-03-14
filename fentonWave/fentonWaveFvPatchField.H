@@ -161,7 +161,10 @@ protected:
 		scalar rampUpTime_;		
 		
 		//- Water density
-		scalar rho_;
+		scalar rho1_;
+
+		//- Air density
+		scalar rho2_;
 
 		//- Wave number k = 2*pi/lambda
         scalar k_;

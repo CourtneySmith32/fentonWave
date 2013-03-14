@@ -293,12 +293,18 @@ void fentonWaveFvPatchField<scalar>::setField
 	{
 		if (this->db().time().timeIndex() != 0)
 		{
-			const fvPatchField<scalar>& rho =
-				patch().lookupPatchField<volScalarField, scalar>("rho");
+
+//			Failed attempts with fixedValue for pd:
+//			scalarField rho(alpha*rho1_+(1-alpha)*rho2_);
 //			scalar c = omega_/k_;
 //			this->refValue() =  rho*( R_ - 0.5*pow(u-c,2) - 0.5*pow(v,2) ); //Fenton (1999) eq. (3.28)
-			this->refGrad() = -rho.snGrad()*(g_ & this->patch().Cf()); //Taken from buoyantPressure
+//			this->valueFraction() = 1.0; //fixedValue
 //			this->valueFraction() = (1.0-alpha); //Fixed value in water and fixed Gradient in air - Runs way too slow with this
+
+//			Taken from buoyantPressure. Corresponds to a fixed wall with no slip. Not optimal but works.
+			const fvPatchField<scalar>& rho =
+				patch().lookupPatchField<volScalarField, scalar>("rho");
+			this->refGrad() = -rho.snGrad()*(g_ & this->patch().Cf()); 
 			this->valueFraction() = 0.0; //fixedGradient as in buoyantPressure
 		}
 		else
@@ -320,10 +326,10 @@ void fentonWaveFvPatchField<vector>::setField
 	const scalarField& v
 )
 {			
-	this->refValue() = alpha*( u*K_/mag(K_) + v*( -g_/mag(g_)) );
+	this->refValue() = pos(alpha-rho2_/rho1_)*( u*K_/mag(K_) + v*( -g_/mag(g_) ) );
 	this->refGrad() = vector::zero;
-//	this->valueFraction() = 1.0;
-	this->valueFraction() = alpha;
+	this->valueFraction() = 1.0;
+//	this->valueFraction() = alpha;
 } 
 
 // Initialising 
@@ -419,8 +425,10 @@ void fentonWaveFvPatchField<Type>::init()
 			IOobject::NO_WRITE
 		)
 	);
-	dictionary sD(tp.subDict("phase1"));
-	rho_ = (dimensionedScalar(sD.lookup("rho"))).value();	
+	dictionary sD1(tp.subDict("phase1"));
+	rho1_ = (dimensionedScalar(sD1.lookup("rho"))).value();	
+	dictionary sD2(tp.subDict("phase1"));
+	rho2_ = (dimensionedScalar(sD2.lookup("rho"))).value();	
 
 	getFourierCoeffs();
 }
@@ -441,7 +449,8 @@ void fentonWaveFvPatchField<Type>::init(const fentonWaveFvPatchField<Type>& ptf)
 	N_ = ptf.N_;
 	nHsteps_ = ptf.nHsteps_;
 	rampUpTime_ = ptf.rampUpTime_;
-	rho_ = ptf.rho_;
+	rho1_ = ptf.rho1_;
+	rho2_ = ptf.rho2_;
 	k_ = ptf.k_;
 	omega_ = ptf.omega_;
 	uBar_ = ptf.uBar_;
@@ -533,6 +542,9 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 		fentonFile.add("uBar",uBar_,true);
 		fentonFile.add("B",B_,true);
 		fentonFile.add("E",E_,true);
+		fentonFile.add("lambda",2*acos(-1.0)/k_,true);
+		fentonFile.add("T",2*acos(-1.0)/omega_,true);
+		fentonFile.add("c",omega_/k_,true);
 		fentonFile.writeObject(IOstream::ASCII, IOstream::currentVersion, IOstream::UNCOMPRESSED);
 	}
 }
