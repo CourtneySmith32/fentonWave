@@ -291,9 +291,9 @@ void fentonWaveFvPatchField<scalar>::setField
 	}
 	else if (fieldName == "pd" || fieldName == "p_rgh" || fieldName == "ph_rgh")
 	{
-		if (this->db().time().timeIndex() != 0)
+//		if (this->db().time().timeIndex() != 0)
+		if (this->db().time().value() != this->db().time().startTime().value())
 		{
-
 //			Failed attempts with fixedValue for pd:
 //			scalarField rho(alpha*rho1_+(1-alpha)*rho2_);
 //			scalar c = omega_/k_;
