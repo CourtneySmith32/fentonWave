@@ -203,7 +203,7 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 		eta += 2*E_[jj]*cos(jj*theta); //Fenton (1999), eq. (3.27)
 	}
 	
-	//Calculating velocity filed components
+	//Calculating velocity field components
 	scalarField u(y.size(),0.0);
 	scalarField v(y.size(),0.0);
 	int	jj;
@@ -251,24 +251,28 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	//Setting field depending on its type
 	setField(this->refValue(), alpha, u, v);
 
-    mixedFvPatchField<Type>::updateCoeffs(); //This line simply runs fvPatchField::updateCoeffs() which simplys sets its private boolean updated_ = true;
+    mixedFvPatchField<Type>::updateCoeffs(); //This line simply runs fvPatchField::updateCoeffs() which sets its private boolean updated_ = true;
 
 }
 
 //In the following we use template specialization to set field depending on its Type: 
 //Inspired by http://www.parashift.com/c++-faq-lite/templates.html#faq-35.7
 
-template<class Type>
-void fentonWaveFvPatchField<Type>::setField
+// Setting velocity field
+template<> 
+void fentonWaveFvPatchField<vector>::setField
 (
-	Field<Type> const& refVal, 
+	Field<vector> const& refVal, 
 	const scalarField& alpha, 
 	const scalarField& u, 
 	const scalarField& v
 )
-{
-//   dummy code executed if setField is called with other Type than scalar or vector
-}   
+{			
+	this->refValue() = pos(alpha-rho2_/rho1_)*( u*K_/mag(K_) + v*( -g_/mag(g_) ) );
+	this->refGrad() = vector::zero;
+	this->valueFraction() = 1.0;
+//	this->valueFraction() = pos(alpha-rho2_/rho1_);
+} 
 
 // Setting volume fraction (alpha1) and pressure (pd etc) field
 template<> 
@@ -311,26 +315,22 @@ void fentonWaveFvPatchField<scalar>::setField
 		{
 			this->refValue() =  0.0;
 			this->refGrad() = 0.0;
-			this->valueFraction() = 0.0;			
+			this->valueFraction() = 0.0;
 		}
 	}	
 }
 
-// Setting velocity field
-template<> 
-void fentonWaveFvPatchField<vector>::setField
+template<class Type>
+void fentonWaveFvPatchField<Type>::setField
 (
-	Field<vector> const& refVal, 
+	Field<Type> const& refVal, 
 	const scalarField& alpha, 
 	const scalarField& u, 
 	const scalarField& v
 )
-{			
-	this->refValue() = pos(alpha-rho2_/rho1_)*( u*K_/mag(K_) + v*( -g_/mag(g_) ) );
-	this->refGrad() = vector::zero;
-	this->valueFraction() = 1.0;
-//	this->valueFraction() = alpha;
-} 
+{
+//   dummy code executed if setField is called with other Type than scalar or vector
+}   
 
 // Initialising 
 template<class Type>
