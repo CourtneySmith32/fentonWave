@@ -4,11 +4,12 @@
 
 application=`getApplication`
 
-runApplication blockMesh
+mkdir -p logs
+
+blockMesh > logs/blockMesh.log 2>&1
 
 #Copy fields containing boundary value settings
-cp 0.org/alpha1 0/alpha1
+cp -r 0.org 0
 
-runApplication setFields
-application2="interFoam"
-runApplication $application2
+setFields > logs/setFields.log 2>&1
+interFoam > logs/interFoam.log 2>&1

@@ -23,7 +23,7 @@ period          10;
 
 direction       ( 1 0 0 );
 
-rampUpTime      20;
+rampUpTime      0;
 
 u1or2       	0; 	//default = 0, not used if uType = 0
 
@@ -43,7 +43,7 @@ nHeightSteps    20; 	//default = 20
 
 //waveMakerPos	0; 	//default = backmost point on patch
 
-//phase		0;	//default = 0.0 giving wave starting at crest, 0.5 gives wave starting at trough
+phase		 0.75;	//default = 0.0 giving wave starting at crest, 0.5 gives wave starting at trough, 0.75 is suitable for starting without ramp up.
 
 // ************************************************************************* //
 

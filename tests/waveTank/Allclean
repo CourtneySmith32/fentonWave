@@ -4,4 +4,4 @@
 . $WM_PROJECT_DIR/bin/tools/CleanFunctions
 
 cleanCase
-rm -rf constant/polyMesh/boundary 0/alpha1*
+rm -rf 0 constant/polyMesh/boundary constant/left logs
