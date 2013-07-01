@@ -234,6 +234,7 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 	scalarField alpha(y.size(),0.0);
 	
 	vector up = -g_/mag(g_);
+	scalar umax(0.0), vmax(0.0), yumax(0.0);
 	forAll(y,facei)
     {
         const labelList& f = fs[facei + start];
@@ -246,7 +247,28 @@ void fentonWaveFvPatchField<Type>::updateCoeffs()
 			if (yi > ymax) ymax = yi;
         }
 		alpha[facei] = min(max((eta[facei]-ymin)/(ymax-ymin),0.0),1.0);
+		u[facei] *= pos(alpha[facei]-rho2_/rho1_);
+		v[facei] *= pos(alpha[facei]-rho2_/rho1_);
+		if (mag(u[facei]) > mag(umax)) 
+		{
+			umax = u[facei];
+			vmax = v[facei];
+			yumax = ymax;// + alpha[facei]*(ymax-ymin);
+		}
     }
+    
+    //Setting velocity field in air phase to be decrease linearly from -(umax,vmax) just above free surface to (0,0) at roof.
+    scalar yRoof(max(y));
+	scalar magU = sqrt(umax*umax+vmax*vmax);
+    forAll(y,facei)
+    {
+		scalar yf = y[facei];
+		if (yf > yumax)
+		{
+				u[facei] = 0.0;//-mag(umax)*(yf-yRoof)/(yumax-yRoof);
+				v[facei] = sign(vmax)*magU*(yf-yRoof)/(yumax-yRoof);
+		}
+	}
 
 	//Setting field depending on its type
 	setField(this->refValue(), alpha, u, v);
@@ -268,7 +290,7 @@ void fentonWaveFvPatchField<vector>::setField
 	const scalarField& v
 )
 {			
-	this->refValue() = pos(alpha-rho2_/rho1_)*( u*K_/mag(K_) + v*( -g_/mag(g_) ) );
+	this->refValue() = u*K_/mag(K_) + v*( -g_/mag(g_) );
 	this->refGrad() = vector::zero;
 	this->valueFraction() = 1.0;
 //	this->valueFraction() = pos(alpha-rho2_/rho1_);
