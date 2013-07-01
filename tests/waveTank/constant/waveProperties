@@ -27,7 +27,7 @@ rampUpTime      0;
 
 u1or2       	0; 	//default = 0, not used if uType = 0
 
-uType      	2; 	//default = 2
+uType      		2; 	//default = 2
 
 nModes          35; 	//default = 30
 
@@ -37,13 +37,13 @@ nHeightSteps    20; 	//default = 20
 
 //rootMaxIter	1000; 	//default = 1000
 
-//length	2; 	//Must be specified if uType = 0, else not used
+//length		2; 	//Must be specified if uType = 0, else not used
 
 //seabedHeight	-0.3; 	//default = lowest point on patch
 
 //waveMakerPos	0; 	//default = backmost point on patch
 
-phase		 0.75;	//default = 0.0 giving wave starting at crest, 0.5 gives wave starting at trough, 0.75 is suitable for starting without ramp up.
+phase		 	0.75;	//default = 0.0 giving wave starting at crest, 0.5 gives wave starting at trough, 0.75 is suitable for starting without ramp up.
 
 // ************************************************************************* //
 

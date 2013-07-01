@@ -20,32 +20,81 @@ solvers
     pcorr
     {
         solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-10;
+        preconditioner
+        {
+            preconditioner  GAMG;
+            tolerance       1e-5;
+            relTol          0;
+            smoother        DICGaussSeidel;
+            nPreSweeps      0;
+            nPostSweeps     2;
+            nFinestSweeps   2;
+            cacheAgglomeration false;
+            nCellsInCoarsestLevel 10;
+            agglomerator    faceAreaPair;
+            mergeLevels     1;
+        }
+
+        tolerance       1e-05;
         relTol          0;
+        maxIter         100;
     }
 
     p_rgh
     {
-        solver          PCG;
-        preconditioner  DIC;
-        tolerance       1e-07;
-        relTol          0.05;
+        solver          GAMG;
+        tolerance       1e-8;
+        relTol          0.01;
+        smoother        DIC;
+        nPreSweeps      0;
+        nPostSweeps     2;
+        nFinestSweeps   2;
+        cacheAgglomeration true;
+        nCellsInCoarsestLevel 10;
+        agglomerator    faceAreaPair;
+        mergeLevels     1;
     }
 
     p_rghFinal
     {
-        $p_rgh;
-        tolerance       1e-07;
+        solver          PCG;
+        preconditioner
+        {
+            preconditioner  GAMG;
+            tolerance       1e-8;
+            relTol          0;
+            nVcycles        2;
+            smoother        DICGaussSeidel;
+            nPreSweeps      2;
+            nPostSweeps     2;
+            nFinestSweeps   2;
+            cacheAgglomeration true;
+            nCellsInCoarsestLevel 10;
+            agglomerator    faceAreaPair;
+            mergeLevels     1;
+        }
+
+        tolerance       1e-8;
         relTol          0;
+        maxIter         20;
     }
 
-    U
+    "(U|k|epsilon)"
     {
-        solver          PBiCG;
-        preconditioner  DILU;
-        tolerance       1e-06;
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-6;
+        relTol          0.1;
+        nSweeps         1;
+    }
+
+    "(U|k|epsilon)Final"
+    {
+        solver          smoothSolver;
+        smoother        GaussSeidel;
+        tolerance       1e-6;
         relTol          0;
+        nSweeps         1;
     }
 }
 

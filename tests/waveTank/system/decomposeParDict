@@ -18,13 +18,13 @@ FoamFile
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 
 
-numberOfSubdomains 8;
+numberOfSubdomains $nProc;
 
 method          simple;
 
 simpleCoeffs
 {
-    n               (8 1 1);
+    n               ($nProc 1 1);
     delta           0.001;
 }
 
