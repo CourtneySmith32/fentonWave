@@ -2,7 +2,7 @@ function [eta,B,Ubar,k,Q,R] = fenton(H,d,LorTandU,N,Hsteps,Npos,plt)
 
 % This is an implementation of the Fourier approximation method for finding
 % stream function waves described in section 3.1.2 of the paper by J.D.
-% Fenton, "Numerical Methods for Nonlinear Waves" (1999), Numerical Methods 
+% Fenton, "Numerical Methods for Nonlinear Waves" (1999), Numerical Methods
 % for Nonlinear Waves, Advances in Coastal and Ocean Engineering, Vol. 5,
 % pp241-324. Equation numbers in the code refer to this paper. At the time
 % of writing the paper could be downloaded here:
@@ -12,52 +12,52 @@ function [eta,B,Ubar,k,Q,R] = fenton(H,d,LorTandU,N,Hsteps,Npos,plt)
 % [eta,B,Ubar,k,Q,R] = fenton(H,d,LorTandU,N,Hsteps)
 %
 % INPUT
-% H:        Wave height.
-% d:        Mean water depth.
+% H: Wave height.
+% d: Mean water depth.
 % LorTandU: 1) Wave length or
-%           2) A vector where
-%                a) LorTandU(1) is the wave period.
-%                b) LorTandU(2) is the current.
-%                c) LorTandU(3) is the type of current with
-%                   LorTandU(3) = 1 corresponding to LorTandU(2) = u1 and
-%                   LorTandU(3) = 2 corresponding to LorTandU(2) = u2.
-%                   See eq. (3.13) in Fentons paper for details.
-% N:        Number of Fourier modes and bins along a half wave length.
-% Hsteps:   Number of steps in which to gradually increase the wave height.
-% Npos:     Number of points along half wave length in which to return 
-%           surface elevation.
-% plt:      0 by default, set to 1 to plot progress.
+% 2) A vector where
+% a) LorTandU(1) is the wave period.
+% b) LorTandU(2) is the current.
+% c) LorTandU(3) is the type of current with
+% LorTandU(3) = 1 corresponding to LorTandU(2) = u1 and
+% LorTandU(3) = 2 corresponding to LorTandU(2) = u2.
+% See eq. (3.13) in Fentons paper for details.
+% N: Number of Fourier modes and bins along a half wave length.
+% Hsteps: Number of steps in which to gradually increase the wave height.
+% Npos: Number of points along half wave length in which to return
+% surface elevation.
+% plt: 0 by default, set to 1 to plot progress.
 %
 %
 % OUTPUT
-% eta:      Double array containing Npos positions along x-axis and the 
-%           corredponding surface elevation above seabed.
-% B:        Fourier coefficients in stream function expansion (3.5)
-% Ubar:     Mean horizontal velocity as seen from co-moving frame (3.5)
-% k:        Wave number = [wave length]/(2*pi)
-% Q:        Constant in kinematic boundary condition (3.7)
-% R:        Constant in dynamic boundary condition (3.8)
+% eta: Double array containing Npos positions along x-axis and the
+% corredponding surface elevation above seabed.
+% B: Fourier coefficients in stream function expansion (3.5)
+% Ubar: Mean horizontal velocity as seen from co-moving frame (3.5)
+% k: Wave number = [wave length]/(2*pi)
+% Q: Constant in kinematic boundary condition (3.7)
+% R: Constant in dynamic boundary condition (3.8)
 %
 % J. Roenby, DHI, 28 June 2012
 %
-% Notes to self: 
+% Notes to self:
 % Compared results with those of NGJ's routine. The eta's and k differ by
-% around 1e-12. The B's, Q and R do not match due to the fact that NGJ's 
+% around 1e-12. The B's, Q and R do not match due to the fact that NGJ's
 % code does not work with nondimensionalized variables.
 %
 % Note that for very long waves almost all of the "action" takes place near
 % the crest. Therefore N must be chosen very large to resolve the wave.
 % Tried to change code to work with varying x step size, but jacobian
 % became ill-conditioned.
-% Also tried to implement a version where the number of points along the 
-% half wave length is larger that one plus the number of Fourier 
+% Also tried to implement a version where the number of points along the
+% half wave length is larger that one plus the number of Fourier
 % coefficients. The system is then overdetermined, and matlab automatically
 % uses its QR factorisation algorithm when the "\" operator is called in
 % the Fmin subfunction. This, however, resulted in a much worse convergence
 % with F(x0) only reaching ~1e-5, with the original version reaching
-% F(x0)~1e-12. 
+% F(x0)~1e-12.
 %
-% A challenging case with H 98% of maximum allowed from page 3 in 
+% A challenging case with H 98% of maximum allowed from page 3 in
 % http://johndfenton.com/Steady-waves/Instructions.pdf
 % is [eta,B,Ubar,k,Q,R] = fenton(0.786,1,50,140,20,500,1)
 
@@ -91,8 +91,12 @@ elseif numel(LorTandU) == 3 %wave period and current specified by user
     u = LorTandU(2);
     sigma = 2*pi/T;
     %Initial guess of wave number from linear theory (3.22)
-    k = sigma^2/g*(coth(sigma*sqrt(d/g))^3/2)^(2/3);
-    k = sigma^2/g*(coth((sigma*sqrt(d/g))^3/2))^(2/3);
+    if sigma.^2*d/g >= 1
+        kh0 = sigma.^2*d/g;
+    else
+        kh0 = sigma*sqrt(d/g);
+    end
+    k = fzero(@(kh) sigma.^2*d/g - kh.*tanh(kh),kh0)/d;
     %Nondimensionalized waver period and current
     LorTandU(1) = T*sqrt(g/d);
     LorTandU(2) = u/sqrt(g*d);
@@ -108,10 +112,10 @@ r = kd + 1/2*u^2;
 
 if plt
     close all
-    figure(1); clf; 
+    figure(1); clf;
     xx = [0:N]/N*pi/k;
     plot(xx,keta/k,'.-r')
-%    axis equal
+% axis equal
     hold on
 end
 
@@ -119,7 +123,9 @@ x = [keta, B, u, kd, q, r];
 h = H/d;
 for n = 1:Hsteps
     [x,F0] = Fmin(@conditions,x,n*h/Hsteps,LorTandU);
-    eta = x(1:N+1)/k; 
+    k = x(2*N+3)/d;
+    xx = [0:N]/N*pi/k;
+    eta = x(1:N+1)/k;
     if plt
         figure(1)
         plot(xx,eta,'.-')
@@ -135,10 +141,6 @@ Q = x(2*N+4)/sqrt(k^3/g);
 R = x(2*N+5)/(k/g);
 
 %Cosine transform of surface elevation
-if nargin < 6
-    Npos = N+1;
-end
-pos = [0:Npos-1]/(Npos-1)*pi/k;
 %(3.26) with j running from 0 to N
 [m,j] = meshgrid((0:N),(0:N));
 etapp = [1/2*eta(1); eta(2:end-1)'; 1/2*eta(end)];
@@ -146,12 +148,18 @@ E = cos(j.*m*pi/N)*etapp;
 
 %(3.27) with with division by N as required in the inverse cosine transform
 E(1) = 1/2*E(1); E(end) = 1/2*E(end);
+if nargin < 6
+    Npos = N+1;
+end
+pos = [0:Npos-1]/(Npos-1)*pi/k;
 [j,X] = meshgrid((0:N),pos);
 ETA = 2/N*cos(j*k.*X)*E;
 eta = [pos; ETA(:)'];
 
 if plt
-    plot(pos,ETA,'k')
+    plot(pos,ETA,'.k')
+    xlabel('x')
+    ylabel('\eta')
 end
 
 function F = conditions(x,h,LorTandU)
@@ -178,7 +186,7 @@ F = zeros(1,2*N+5);
 F(1:N+1) = - u*keta + sum(b.*sinh(j.*ke)./cosh(j*kd).*cos(j.*kx),1) + q;
 
 %Dynamic boundary condition (3.8)
-U =  - u + sum(j.*b.*cosh(j.*ke)./cosh(j*kd).*cos(j.*kx),1);
+U = - u + sum(j.*b.*cosh(j.*ke)./cosh(j*kd).*cos(j.*kx),1);
 V = sum(j.*b.*sinh(j.*ke)./cosh(j*kd).*sin(j.*kx),1);
 F(N+2:2*N+2) = 1/2*U.^2 + 1/2*V.^2 + keta - r;
 
@@ -227,8 +235,8 @@ tol = 1e-5; %HARDCODED TOLERANCE
 err = 2*tol;
 while err > tol
     F0 = F(x0,varargin{:}).';
-    dx = - jac(F,x0,varargin{:})\F0;
-    x0 = x0(:).' + dx(:).';
+dx = - jac(F,x0,varargin{:})\F0;
+x0 = x0(:).' + dx(:).';
     err = max(abs(F0))
 end
 if nargout > 1
