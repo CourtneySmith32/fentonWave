@@ -449,7 +449,7 @@ void fentonWaveFvPatchField<Type>::init()
 	);
 	dictionary sD1(tp.subDict("phase1"));
 	rho1_ = (dimensionedScalar(sD1.lookup("rho"))).value();	
-	dictionary sD2(tp.subDict("phase1"));
+	dictionary sD2(tp.subDict("phase2"));
 	rho2_ = (dimensionedScalar(sD2.lookup("rho"))).value();	
 
 	getFourierCoeffs();
