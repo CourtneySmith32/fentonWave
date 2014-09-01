@@ -447,9 +447,15 @@ void fentonWaveFvPatchField<Type>::init()
 			IOobject::NO_WRITE
 		)
 	);
-	dictionary sD1(tp.subDict("phase1"));
+
+	wordList defaultPhaseNames(2);
+	defaultPhaseNames[0] = "phase1";
+	defaultPhaseNames[1] = "phase2";
+	wordList phases(wordList(tp.lookupOrDefault("phases",defaultPhaseNames))); //In OF-2.3.0 the phases keyword is required in transportProperties
+
+	dictionary sD1(tp.subDict(phases[0]));
 	rho1_ = (dimensionedScalar(sD1.lookup("rho"))).value();	
-	dictionary sD2(tp.subDict("phase2"));
+	dictionary sD2(tp.subDict(phases[1]));
 	rho2_ = (dimensionedScalar(sD2.lookup("rho"))).value();	
 
 	getFourierCoeffs();
@@ -497,8 +503,6 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 	);
 	
 	bool sameWave = !(fentonFile.empty());
-
-	Info << "sameWave" << sameWave << endl;		
 
 	if ( sameWave )
 	{
