@@ -498,6 +498,8 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 	
 	bool sameWave = !(fentonFile.empty());
 
+	Info << "sameWave" << sameWave << endl;		
+
 	if ( sameWave )
 	{
 		scalar H(readScalar(fentonFile.lookup("H")));
@@ -508,7 +510,7 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 		unsigned int rootMaxIter(readInt(fentonFile.lookup("maxIter")));
 		int uType(readInt(fentonFile.lookup("uType")));
 
-		scalar prec(2*pow(10.0,-scalar(IOstream::precision_)));
+		scalar prec(pow(10.0,1-scalar(IOstream::precision_)));
 
 		sameWave = sameWave && (N == N_);
 		sameWave = sameWave && (nHsteps == nHsteps_);
@@ -550,6 +552,10 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 	{
 		fenton();
 		//write parameters defining a unique wave calculation to file
+
+		unsigned int prec = IOstream::precision_;
+		IOstream::precision_ = 14;
+
 		fentonFile.add("H",H_,true);
 		fentonFile.add("d",d_,true);
 		fentonFile.add("N",N_,true);
@@ -568,7 +574,10 @@ void fentonWaveFvPatchField<Type>::getFourierCoeffs()
 		fentonFile.add("T",2*acos(-1.0)/omega_,true);
 		fentonFile.add("c",omega_/k_,true);
 		fentonFile.writeObject(IOstream::ASCII, IOstream::currentVersion, IOstream::UNCOMPRESSED);
-	}
+
+		IOstream::precision_ = prec;
+
+		}
 }
 
 template<class Type>
